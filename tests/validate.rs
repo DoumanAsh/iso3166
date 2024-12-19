@@ -37,3 +37,17 @@ fn should_be_valid() {
         assert_eq!(country, Country::from_alpha3_ignore_case(&country.alpha3.to_lowercase()).unwrap());
     }
 }
+
+#[cfg(feature = "serde")]
+#[test]
+fn should_validate_serde() {
+    for country in LIST.iter() {
+        let string = serde_json::to_string(country).expect("to serialize");
+        let result = serde_json::from_str::<Country>(&string).expect("to deserialize");
+        assert_eq!(country, &result);
+        let result = serde_json::from_str::<Country>(&format!("\"{}\"", country.data().alpha3)).expect("to deserialize");
+        assert_eq!(country, &result);
+        let result = serde_json::from_str::<Country>(&format!("\"{}\"", country.data().alpha2)).expect("to deserialize");
+        assert_eq!(country, &result);
+    }
+}

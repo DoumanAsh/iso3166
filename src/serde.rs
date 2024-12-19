@@ -25,14 +25,23 @@ impl<'a> Visitor<'a> for CountryVisitor {
 
     #[inline]
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("Expected 3 digit ISO-3166 country code")
+        formatter.write_str("Expected 2 or 3 digit ISO-3166 country code")
     }
 
     #[inline]
     fn visit_str<E: Error>(self, input: &str) -> Result<Self::Value, E> {
-        match Country::from_alpha3(input) {
-            Some(country) => Ok(country),
-            None => Err(Error::invalid_value(serde::de::Unexpected::Str(input), &self))
+        if input.len() == 2 {
+            match Country::from_alpha2_ignore_case(input) {
+                Some(country) => Ok(country),
+                None => Err(Error::invalid_value(serde::de::Unexpected::Str(input), &self))
+            }
+        } else if input.len() == 3 {
+            match Country::from_alpha3_ignore_case(input) {
+                Some(country) => Ok(country),
+                None => Err(Error::invalid_value(serde::de::Unexpected::Str(input), &self))
+            }
+        } else {
+            Err(Error::invalid_value(serde::de::Unexpected::Str(input), &self))
         }
     }
 }
