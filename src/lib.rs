@@ -180,7 +180,7 @@ impl hash::Hash for Country {
 impl fmt::Debug for Country {
     #[inline(always)]
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt.debug_struct("Country")
+        fmt.debug_struct(self.name)
            .field("id", &self.id)
            .field("alpha2", &self.alpha2)
            .field("alpha3", &self.alpha3)
