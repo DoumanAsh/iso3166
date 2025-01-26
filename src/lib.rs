@@ -100,12 +100,7 @@ impl Country {
     #[inline(always)]
     ///Converts from country id
     pub fn from_id(id: u16) -> Option<Self> {
-        for country in LIST {
-            if country.id == id {
-                return Some(*country)
-            }
-        }
-        None
+        countries::from_id(id)
     }
 
     #[inline(always)]

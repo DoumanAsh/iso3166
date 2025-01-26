@@ -135,12 +135,12 @@ fn should_re_generate_source_code() {
 
     //from_id()
     write_all!(b"\n///Look up country by its numeric ID\n");
-    write_all!(b"pub const fn from_id(id: u16) -> Option<&'static Country> {\n");
+    write_all!(b"pub const fn from_id(id: u16) -> Option<Country> {\n");
 
     write_fmt!("{TAB}match id {{\n");
     for country in countries.iter() {
         let Country { alpha3, .. } = country;
-        write_fmt!("{TAB}{TAB}data::{alpha3}_ID => Some(&{alpha3}),\n");
+        write_fmt!("{TAB}{TAB}data::{alpha3}_ID => Some({alpha3}),\n");
     }
     write_fmt!("{TAB}{TAB}_ => None,\n");
     write_fmt!("{TAB}}}\n");
