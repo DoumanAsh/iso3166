@@ -6,7 +6,7 @@
 
 #![no_std]
 #![warn(missing_docs)]
-#![cfg_attr(feature = "cargo-clippy", allow(clippy::style))]
+#![allow(clippy::style)]
 #![cfg_attr(rustfmt, rustfmt_skip)]
 
 mod data;
@@ -18,7 +18,7 @@ mod serde;
 use core::{cmp, hash, ops, fmt};
 
 #[repr(u8)]
-#[derive(PartialEq, Eq, Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Clone, Copy)]
 ///Region
 pub enum Region {
     ///Europe
@@ -27,7 +27,7 @@ pub enum Region {
     Asia,
     ///North America
     ///
-    ///Includes central America and caribbean islands
+    ///Includes central America and Caribbean islands
     NorthAmerica,
     ///South America
     SouthAmerica,
@@ -37,16 +37,41 @@ pub enum Region {
     Oceania,
 }
 
+impl Region {
+    #[inline(always)]
+    ///Gets region name
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::Europe => "Europe",
+            Self::Asia => "Asia",
+            Self::NorthAmerica => "NorthAmerica",
+            Self::SouthAmerica => "SouthAmerica",
+            Self::Africa => "Africa",
+            Self::Oceania => "Oceania",
+        }
+    }
+}
+
+impl fmt::Debug for Region {
+    #[inline(always)]
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self.as_str(), fmt)
+    }
+}
+
 impl fmt::Display for Region {
     #[inline(always)]
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Debug::fmt(self, fmt)
+        fmt::Display::fmt(self.as_str(), fmt)
     }
 }
 
 ///Country data
 pub struct Data {
-    ///Numeric id
+    ///Unique numeric id assigned to the country
+    ///
+    ///Comparing to alpha2/alpha3, this ID can never be re-assigned to new country.
+    ///Even if country has inherited alpha2/alpha3 codes
     pub id: u16,
     ///2 digit country code
     pub alpha2: &'static str,
@@ -87,11 +112,8 @@ impl Country {
     ///Converts from 2 digit country code
     pub fn from_alpha2(code: &str) -> Option<Self> {
         if code.len() == 2 {
-            for country in LIST {
-                if country.alpha2 == code {
-                    return Some(*country)
-                }
-            }
+            let code = code.as_bytes();
+            return countries::from_alpha2([code[0], code[1]]);
         }
         None
     }
@@ -100,25 +122,18 @@ impl Country {
     ///Converts from 2 digit country code
     pub fn from_alpha2_ignore_case(code: &str) -> Option<Self> {
         if code.len() == 2 {
-            for country in LIST {
-                if country.alpha2.eq_ignore_ascii_case(code) {
-                    return Some(*country)
-                }
-            }
+            let code = code.as_bytes();
+            return countries::from_alpha2([code[0].to_ascii_uppercase(), code[1].to_ascii_uppercase()]);
         }
         None
     }
-
 
     #[inline(always)]
     ///Converts from 3 digit country code
     pub fn from_alpha3(code: &str) -> Option<Self> {
         if code.len() == 3 {
-            for country in LIST {
-                if country.alpha3 == code {
-                    return Some(*country)
-                }
-            }
+            let code = code.as_bytes();
+            return countries::from_alpha3([code[0], code[1], code[2]]);
         }
         None
     }
@@ -127,15 +142,11 @@ impl Country {
     ///Converts from 3 digit country code
     pub fn from_alpha3_ignore_case(code: &str) -> Option<Self> {
         if code.len() == 3 {
-            for country in LIST {
-                if country.alpha3.eq_ignore_ascii_case(code) {
-                    return Some(*country)
-                }
-            }
+            let code = code.as_bytes();
+            return countries::from_alpha3([code[0].to_ascii_uppercase(), code[1].to_ascii_uppercase(), code[2].to_ascii_uppercase()]);
         }
         None
     }
-
 }
 
 impl PartialEq for Country {
@@ -190,7 +201,7 @@ impl fmt::Debug for Country {
 }
 
 impl cmp::PartialOrd for Country {
-    #[allow(clippy::incorrect_partial_ord_impl_on_ord_type)]
+    #[allow(clippy::non_canonical_partial_ord_impl)]
     #[inline(always)]
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         cmp::PartialOrd::partial_cmp(&self.0.id, &other.0.id)
